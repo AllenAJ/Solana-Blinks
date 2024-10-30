@@ -1,101 +1,130 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { Copy } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [formData, setFormData] = useState({
+    walletAddress: "",
+    amount: "",
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const generateDialectLink = () => {
+    if (!formData.walletAddress || !formData.amount) return "";
+    
+    const baseUrl = "https://dial.to/?action=solana-action:";
+    const apiEndpoint = `${window.location.origin}/api/actions/transfer`;
+    return `${baseUrl}${apiEndpoint}?to=${encodeURIComponent(formData.walletAddress)}&amount=${encodeURIComponent(formData.amount)}`;
+  };
+
+  const copyToClipboard = async () => {
+    const link = generateDialectLink();
+    if (!link) {
+      alert("Please fill in all fields!");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      alert("Link copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-2xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900">Create Payment Link</h1>
+          <p className="text-gray-600">
+            Generate shareable payment links for your blockchain transactions
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Form */}
+        <div className="space-y-4 bg-white p-6 rounded-lg shadow">
+          {/* Wallet Address Input */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="wallet"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Recipient Wallet Address
+            </label>
+            <input
+              id="wallet"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter wallet address (0x...)"
+              value={formData.walletAddress}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                walletAddress: e.target.value
+              }))}
+            />
+          </div>
+
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="amount"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Amount
+            </label>
+            <input
+              id="amount"
+              type="number"
+              step="0.000001"
+              min="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter amount"
+              value={formData.amount}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                amount: e.target.value
+              }))}
+            />
+          </div>
+
+          {/* Generated Link */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Payment Link
+            </label>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50"
+                value={generateDialectLink()}
+                placeholder="Fill in the fields above to generate link"
+              />
+              <button 
+                onClick={copyToClipboard}
+                className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                title="Copy to clipboard"
+              >
+                <Copy className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Preview */}
+          {generateDialectLink() && (
+            <div className="space-y-2 mt-6">
+              <label className="block text-sm font-medium text-gray-700">
+                Preview
+              </label>
+              <div className="border rounded-lg overflow-hidden">
+                <iframe
+                  src={generateDialectLink()}
+                  className="w-full h-[400px]"
+                  title="Payment Link Preview"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
